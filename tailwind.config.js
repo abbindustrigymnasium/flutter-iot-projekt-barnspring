@@ -8,7 +8,8 @@ module.exports = {
       },
       colors: {
         LB : "#16163C",
-        DB : "#0A0A1C"
+        DB : "#0A0A1C",
+        Border: "7C7CFF"
       }
     },
   },

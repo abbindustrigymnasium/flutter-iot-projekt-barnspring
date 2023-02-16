@@ -7,11 +7,12 @@ const ProgressCircle = ({ progress, size, strokeWidth, color }) => {
   const radius = (size - strokeWidth) / 2;
   const center = size / 2;
 
+
   useEffect(() => {
     setCircumference(2 * Math.PI * radius);
   }, []);
 
-  const progressOffset = circumference - (progress / 100) * circumference;
+  const progressOffset = circumference - (progress / size) * circumference;
   return (
     <View>
       <Svg width={size} height={size}>
@@ -24,6 +25,7 @@ const ProgressCircle = ({ progress, size, strokeWidth, color }) => {
           fill="none"
           strokeDasharray={`${circumference} ${circumference}`}
           strokeDashoffset={progressOffset}
+          strokeLinecap="round"
         />
       </Svg>
     </View>
