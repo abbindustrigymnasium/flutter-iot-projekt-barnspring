@@ -27,15 +27,16 @@
         "NSLocationWhenInUseUsageDescription": "text",
         "NSLocationAlwaysAndWhenInUseUsageDescription": "text",
         "NSLocationAlwaysUsageDescription": "text"
-    }
+      },
+      "bundleIdentifier": "com.danielskoglund.iotmobileapp"
     },
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#FFFFFF"
       },
       "permissions": [
-          "ACCESS_BACKGROUND_LOCATION"
-        ]
+        "ACCESS_BACKGROUND_LOCATION"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -44,6 +45,11 @@
       "react-native-background-geolocation",
       "react-native-background-fetch",
       "expo-gradle-ext-vars"
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "320fc5ed-0be8-48e3-90f1-4cedf8cf0179"
+      }
+    }
   }
 }
