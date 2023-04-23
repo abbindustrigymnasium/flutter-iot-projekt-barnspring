@@ -6,7 +6,7 @@ import { useFonts } from 'expo-font';
 import Swiper from 'react-native-swiper'
 import { SvgXml } from 'react-native-svg';
 import * as Progress from 'react-native-progress';
-import { auth } from './utils/firebase';
+import { addToDistance, auth, getDistance } from './utils/firebase';
 import { signInWithEmailAndPassword, signOut, createUserWithEmailAndPassword, onAuthStateChanged, sendEmailVerification, updateProfile } from 'firebase/auth';
 import { getUserExtraInfo, addUserExtraInfo } from './utils/firebase';
 
@@ -48,11 +48,19 @@ const App = () => {
   const [currentPageIndex, setCurrentPageIndex] = useState(0);
   const [currentUser, setCurrentUser] = useState();
   const [location, setLocation] = useState();
+  const [currentDistance, setCurrentDistance] = useState();
   const [distanceDiff, setDistanceDiff] = useState();
+  const [prevCoords, setPrevCoords] = useState();
 
   useEffect(() => {
-
-  }, [])
+    const distance = async () => {
+      if (location) {
+        const date = epochToDate(location.timestamp);
+        await getDistance(currentUser.uid, date);
+      }
+    }
+    distance();
+  }, [distanceDiff])
 
   useEffect(() => {
     let pprevCoords;
@@ -71,17 +79,17 @@ const App = () => {
         (loc) => {
           setLocation(loc);
           let coords = [loc?.coords.latitude, loc?.coords.longitude];
-          if (pprevCoords) { 
+          if (prevCoords) { 
             trackingCount++;
             console.log(trackingCount)
             if (trackingCount % 10 === 0) { 
-              let dist = haversine(pprevCoords, coords);
-              setDistanceDiff(dist);
-              console.log(dist);
-              pprevCoords = coords;
+              let dist = Math.round(haversine(prevCoords, coords));
+              addToDistance(currentUser.uid, dist, epochToDate(loc?.timestamp))
+              console.log("DISTANCE ADDED: ", dist, "meter");
+              setPrevCoords(coords)
             }
             if (trackingCount === 0) {
-              pprevCoords = coords;
+              setPrevCoords(coords)
             }
           }
           console.log("Location:", "\n", loc);
@@ -329,7 +337,7 @@ const App = () => {
                 <Text className="text-white">Longitude: {location?.coords.longitude}</Text>
                 <Text className="text-white">Latitude: {location?.coords.latitude}</Text>
                 <Text className="text-white">Timestamp: {epochToTimeString(location?.timestamp)}</Text>
-                <Text className="text-white">Distance since update: {distanceDiff}</Text>
+                <Text className="text-white">Distance ran: {currentDistance}</Text>
                 </View>
               :""
             }

@@ -1,7 +1,7 @@
 // Import the functions you need from the SDKs you need
 
 import { initializeApp } from "firebase/app";
-import { getFirestore, updateDoc, doc, setDoc, getDoc } from "firebase/firestore";
+import { getFirestore, updateDoc, doc, setDoc, getDoc, FieldValue } from "firebase/firestore";
 import { collection } from "firebase/firestore"; 
 import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
 
@@ -29,6 +29,40 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 export const auth = getAuth(app);
+
+export const addToDistance = async (userId, distance, date) => {
+  try {
+    const statsDoc = doc(db, "stats", userId);
+    const stats = await getDoc(statsDoc)
+    if (!stats.exists()) {
+      await setDoc(statsDoc, {
+        [`${date}.distance`]: distance
+      })
+    }
+    
+    else {
+      await updateDoc(statsDoc, {
+        [`${date}.distance`]: FieldValue.increment(distance)
+      })
+    }
+  }
+  catch (e) {
+    console.error(e)
+  }
+}
+
+export const getDistance = async (userId, date) => {
+  try {
+    const statsDoc = doc(db, "stats", userId);
+    const stats = await getDoc(statsDoc)
+    if (stats.exists()) {
+      return stats.data()
+    }
+  }
+  catch (e) {
+    console.error(e)
+  }
+}
 
 export const getUserExtraInfo = async (userId) => {
   try {
