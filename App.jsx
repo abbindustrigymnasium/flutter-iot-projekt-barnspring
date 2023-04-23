@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { View, TouchableOpacity, Button, Text, Dimensions, Pressable, TextInput, ScrollView } from 'react-native';
 import ProgressCircle from './progressCircle.jsx';
-import Chart from './chart.jsx';
+// import Chart from './chart.jsx';
 import { useFonts } from 'expo-font';
 import Swiper from 'react-native-swiper'
 import { SvgXml } from 'react-native-svg';
@@ -23,6 +23,7 @@ import StepsSvg from './assets/svg/Steps.svg';
 import SpeedSvg from './assets/svg/Speed.svg';
 
 import * as Location from 'expo-location';
+import haversine from 'haversine-distance';
 
 function epochToTimeString(epoch) {
   const date = new Date(epoch);
@@ -32,6 +33,14 @@ function epochToTimeString(epoch) {
   return `${hours}:${minutes}:${seconds}`;
 }
 
+function epochToDate(epoch) {
+  const date = new Date(epoch);
+  const day = date.getDate();
+  const month = date.getMonth();
+  const year = date.getFullYear();
+  return `${day}/${month}-${year}`;
+}
+
 const App = () => {
 
   const { width } = Dimensions.get('window');
@@ -39,12 +48,15 @@ const App = () => {
   const [currentPageIndex, setCurrentPageIndex] = useState(0);
   const [currentUser, setCurrentUser] = useState();
   const [location, setLocation] = useState();
+  const [distanceDiff, setDistanceDiff] = useState();
 
   useEffect(() => {
 
   }, [])
 
   useEffect(() => {
+    let pprevCoords;
+    let trackingCount = 0;
     const getLocation = async () => {
       let { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== 'granted') {
@@ -52,13 +64,27 @@ const App = () => {
         return;
       }
 
-      let currentLocation = await Location.watchPositionAsync({
-        accuracy: Location.Accuracy.BestForNavigation,
+      await Location.watchPositionAsync({
+        accuracy: Location.Accuracy.Highest,
         distanceInterval: 0.1,
       },
         (loc) => {
           setLocation(loc);
-          console.log("Location:", "\n", loc)
+          let coords = [loc?.coords.latitude, loc?.coords.longitude];
+          if (pprevCoords) { 
+            trackingCount++;
+            console.log(trackingCount)
+            if (trackingCount % 10 === 0) { 
+              let dist = haversine(pprevCoords, coords);
+              setDistanceDiff(dist);
+              console.log(dist);
+              pprevCoords = coords;
+            }
+            if (trackingCount === 0) {
+              pprevCoords = coords;
+            }
+          }
+          console.log("Location:", "\n", loc);
         });
     }
     getLocation()
@@ -291,7 +317,7 @@ const App = () => {
           <View className="w-full mt-20 flex items-center">
             <View className="w-11/12">
               <Text className="text-white uppercase font-bold opacity-50">
-                {currentUser.displayName} - LVL {currentUser.displayName}
+                {currentUser.displayName} - {epochToDate(location?.timestamp)}
               </Text>
               <Text className="text-white text-3xl font-[PM] font-semibold">
                 Dashboard
@@ -299,9 +325,11 @@ const App = () => {
               {
               (location)?
               <View>
-              <Text className="text-white">Longitude: {location?.coords.longitude}</Text>
+                <Text className="text-white"></Text>
+                <Text className="text-white">Longitude: {location?.coords.longitude}</Text>
                 <Text className="text-white">Latitude: {location?.coords.latitude}</Text>
                 <Text className="text-white">Timestamp: {epochToTimeString(location?.timestamp)}</Text>
+                <Text className="text-white">Distance since update: {distanceDiff}</Text>
                 </View>
               :""
             }
@@ -427,7 +455,7 @@ const App = () => {
               <Text className="text-white text-3xl mb-6 font-[PM] font-semibold">
                 Stats
               </Text>
-              <Chart/>
+              {/* <Chart/> */}
               <View className="bg-[#10102C] mt-6 py-3 flex flex-row justify-around items-center w-full rounded-3xl border-[#20204C] border">
                 <View className="flex items-center">
                   <Text className="text-white text-lg font-[PM]">
