@@ -3,7 +3,7 @@ import * as Location from 'expo-location';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Platform, Text, View, StyleSheet, Pressable, TextInput } from 'react-native';
-import { addUser, auth } from './utils/firebase';
+import { auth } from './utils/firebase';
 import Swiper from 'react-native-swiper'
 import { signInWithEmailAndPassword, signOut, createUserWithEmailAndPassword, onAuthStateChanged, sendEmailVerification, updateProfile } from 'firebase/auth';
 
@@ -255,12 +255,6 @@ export default function App() {
             Log out
           </Text>
         </Pressable>
-      </View>
-      <View className="flex justify-center items-center h-full">
-        <Text className="text-white">Heil hitler</Text>
-      </View>
-      <View className="flex justify-center items-center h-full">
-        <Text className="text-white">Skrunk</Text>
       </View>
     </Swiper> 
     )
