@@ -25,6 +25,16 @@ const App = () => {
   const swiperRef = useRef(null);
   const [currentPageIndex, setCurrentPageIndex] = useState(0);
 
+  
+  const sortedChallenges = allChallenges.sort((a, b) => {
+    if (a.type < b.type) {
+      return -1;
+    }
+    if (a.type > b.type) {
+      return 1;
+    }
+    return 0;
+  });
   const topChallenges = allChallenges.sort((a, b) => {
     return b.progress / b.goal - a.progress / a.goal;
   }).slice(0, 3);
@@ -129,14 +139,17 @@ const App = () => {
             <Text className="text-white text-3xl mb-6 font-[PM] font-semibold">
               Challenges
             </Text>
-            {allChallenges.map((challenge) => (
-              <View key={challenge.title} className="flex justify-center h-24">
-                <SvgXml width={22} height={22} xml={challenge.type === 'speed' ? SpeedSvg : challenge.type === 'map' ? Map2Svg : challenge.type === "steps" ? StepsSvg : 'Unknown challenge'} className="fill-white"/>
-                <View className="flex flex-row w-full justify-center">
-                  <Text className="text-white text-base font-[PM] ml-2 max-w-[82%] h-8 overflow-hidden">{challenge.title}</Text>
-                  <Text className="text-xl font-[PM] ml-auto text-[#0085FF]">{challenge.points}</Text>
+            {sortedChallenges.map((challenge) => (
+              <View key={challenge.title} className="flex justify-center">
+                <View className="flex flex-row mt-4">
+                  <SvgXml width={22} height={22} xml={challenge.type === 'speed' ? SpeedSvg : challenge.type === 'map' ? Map2Svg : challenge.type === "steps" ? StepsSvg : 'Unknown challenge'} className="fill-white"/>
+                  <Text className="text-white text-sm font-[PM] ml-2">{challenge.type}</Text>
                 </View>
-                <Progress.Bar className="w-full" color="#0085FF" unfilledColor="" borderWidth={0} progress={challenge.progress/challenge.goal} width={width*(11/12)} />
+                <View className="flex flex-row w-full justify-center">
+                  <Text className="text-white text-lg font-[PM] max-w-[95%]">{challenge.title}</Text>
+                  <Text className="text-xl font-[PM] ml-auto text-[#0085FF]">{challenge.points}</Text> 
+                </View>
+                <Progress.Bar className="w-full my-3" color="#0085FF" unfilledColor="" borderWidth={0} progress={challenge.progress/challenge.goal} width={width*(11/12)} height={10}/>
               </View>
             ))}
             </View>

@@ -14,6 +14,20 @@
         "points" : 2
     },
     {
+        "title" : "Run slower than 25 km/h (7 m/s)",
+        "type" : "speed",
+        "progress" : 24,
+        "goal" : 25,
+        "points" : 2
+    },
+    {
+        "title" : "Run braos than 25 km/h (7 m/s)",
+        "type" : "speed",
+        "progress" : 24,
+        "goal" : 25,
+        "points" : 2
+    },
+    {
         "title" : "Visit Bäckby Centrum",
         "type" : "map",
         "progress" : 0,
