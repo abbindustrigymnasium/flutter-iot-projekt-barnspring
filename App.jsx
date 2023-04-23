@@ -7,7 +7,7 @@ import { SvgXml } from 'react-native-svg';
 import * as Progress from 'react-native-progress';
 import { auth } from './utils/firebase';
 import { signInWithEmailAndPassword, signOut, createUserWithEmailAndPassword, onAuthStateChanged, sendEmailVerification, updateProfile } from 'firebase/auth';
-
+import { getUserExtraInfo, addUserExtraInfo } from './utils/firebase';
 
 import allChallenges from './test_challenges.json';
 
@@ -21,6 +21,15 @@ import Map2Svg from './assets/svg/Map2.svg';
 import StepsSvg from './assets/svg/Steps.svg';
 import SpeedSvg from './assets/svg/Speed.svg';
 
+import * as Location from 'expo-location';
+
+function epochToTimeString(epoch) {
+  const date = new Date(epoch);
+  const hours = date.getHours().toString().padStart(2, '0');
+  const minutes = date.getMinutes().toString().padStart(2, '0');
+  const seconds = date.getSeconds().toString().padStart(2, '0');
+  return `${hours}:${minutes}:${seconds}`;
+}
 
 const App = () => {
 
@@ -28,7 +37,31 @@ const App = () => {
   const swiperRef = useRef(null);
   const [currentPageIndex, setCurrentPageIndex] = useState(0);
   const [currentUser, setCurrentUser] = useState();
+  const [location, setLocation] = useState();
 
+  useEffect(() => {
+
+  }, [])
+
+  useEffect(() => {
+    const getLocation = async () => {
+      let { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        console.log("Please grant location permissions.");
+        return;
+      }
+
+      let currentLocation = await Location.watchPositionAsync({
+        accuracy: Location.Accuracy.BestForNavigation,
+        distanceInterval: 0.1,
+      },
+        (loc) => {
+          setLocation(loc);
+          console.log("Location:", "\n", loc)
+        });
+    }
+    getLocation()
+  }, [])
   // Display login (true) or signup (false)
   const [displayLogin, setDisplayLogin] = useState(false);
   
@@ -92,13 +125,15 @@ const App = () => {
       .then((userCredential) => {
         // Signed in 
         const user = userCredential.user;
-        updateProfile(user,{displayName: username})
+        const userId = user.uid;
+        updateProfile(user, { displayName: username })
+        addUserExtraInfo(userId, {
+          userName: username,
+        })
         // sendEmailVerification(user)
         // .then(() => {
         //   console.log("Sent Verification Email")
-        //   // Show "Check Email"
         // })
-        console.log(user)
         // ...
       })
       .catch((error) => {
@@ -114,43 +149,13 @@ const App = () => {
     useEffect(() => {
       onAuthStateChanged(auth, (user) => {
         if (user) {
-          // User is signed in, see docs for a list of available properties
-          // https://firebase.google.com/docs/reference/js/firebase.User
           setCurrentUser(user);
-          // ...
         } else {
-          // User is signed out
-          // ...
         }
       });
     }, [])
-    
-    // useEffect(() => {
-    //   (async () => {
-        
-    //     let { status } = await Location.requestForegroundPermissionsAsync();
-    //     if (status !== 'granted') {
-    //       setErrorMsg('Permission to access location was denied');
-    //       return;
-    //     }
-    
-    //     let location = await Location.getCurrentPositionAsync({
-    //       accuracy: Location.Accuracy.Highest
-    //     });
-    //     setLocation(location);
-    //   })();
-    // }, []);
       return(
           <View className="h-full w-full flex px-4 justify-center items-center bg-[#0A0A1C]">
-            {/* {
-              (location)?
-              <View>
-              <Text className="text-white">Longitude: {location?.coords.longitude}</Text>
-                <Text className="text-white">Latitude: {location?.coords.latitude}</Text>
-                <Text className="text-white">Timestamp: {epochToTimeString(location?.timestamp)}</Text>
-                </View>
-              :""
-            } */}
             <View className="flex flex-col gap-3 w-full focus:bottom-[132px] transition-all">
             <Text className="text-rose-600">{errorMsg}</Text>
             <Text className="w-full text-3xl font-bold text-white">Create your account</Text>
@@ -200,7 +205,6 @@ const App = () => {
         signInWithEmailAndPassword(auth, email, password)
         .then((userCredential) => {
           const user = userCredential.user;
-          console.log(user)
         })
         .catch((error) => {
           const errorCode = error.code;
@@ -224,22 +228,6 @@ const App = () => {
           }
         });
       }, [])
-      
-      // useEffect(() => {
-      //   (async () => {
-          
-      //     let { status } = await Location.requestForegroundPermissionsAsync();
-      //     if (status !== 'granted') {
-      //       setErrorMsg('Permission to access location was denied');
-      //       return;
-      //     }
-      
-      //     let location = await Location.getCurrentPositionAsync({
-      //       accuracy: Location.Accuracy.Highest
-      //     });
-      //     setLocation(location);
-      //   })();
-      // }, []);
         return(
             <View className="h-full w-full flex px-4 justify-center items-center bg-[#0A0A1C]">
               {/* {
@@ -281,12 +269,10 @@ const App = () => {
       }
   
   if (!fontsLoaded) {
-    // loading screen
     return;
   }
   if(currentUser)
   {
-    console.log(currentUser)
     const handleSignOut = () => {
       signOut(auth).then(() => {
         console.log("success")
@@ -315,6 +301,15 @@ const App = () => {
               <Text className="text-white text-3xl font-[PM] font-semibold">
                 Dashboard
               </Text>
+              {
+              (location)?
+              <View>
+              <Text className="text-white">Longitude: {location?.coords.longitude}</Text>
+                <Text className="text-white">Latitude: {location?.coords.latitude}</Text>
+                <Text className="text-white">Timestamp: {epochToTimeString(location?.timestamp)}</Text>
+                </View>
+              :""
+            }
             <View className="w-full flex justify-center items-center">
               <View className="bg-[#10102C] mt-6 flex justify-center items-center w-full h-[300px] rounded-3xl border-[#20204C] border">
                 <View className=" w-full h-5/6 flex items-center justify-between">
@@ -412,7 +407,6 @@ const App = () => {
           <TouchableOpacity className="w-1/4 flex pt-4 items-center" onPress={() => swiperRef.current?.scrollTo(3)}>
             <SvgXml width={24} height={24} xml={ProfileSvg} className={`fill-[#0085FF] opacity-${currentPageIndex == 3 ? "100" : "50" }`}/>
           </TouchableOpacity>
-          
         </View>
     </View>
     )

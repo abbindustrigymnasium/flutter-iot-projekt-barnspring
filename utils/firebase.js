@@ -30,7 +30,7 @@ const db = getFirestore(app);
 
 export const auth = getAuth(app);
 
-export const getUserExtraInfo = async ({ userId }) => {
+export const getUserExtraInfo = async (userId) => {
   try {
     const userExtraDoc = await getDoc(doc(db, "users", userId));
     if (userExtraDoc.exists()) {
@@ -42,7 +42,7 @@ export const getUserExtraInfo = async ({ userId }) => {
   }
 }
 
-export const addUserExtraInfo = async ({userId, data}) => {
+export const addUserExtraInfo = async (userId, data) => {
     try {
         const docRef = await setDoc(doc(db, "users", userId), data);
         console.log("Set document for User with ID: ", userId)
@@ -51,7 +51,7 @@ export const addUserExtraInfo = async ({userId, data}) => {
       }
 }
 
-export const updateUser = async ({userId, data}) => {
+export const updateUserExtraInfo = async (userId, data) => {
     try {
         const docRef = await updateDoc(doc(db, "users", userId), data);
         console.log("Document written with ID: ", docRef.id);
