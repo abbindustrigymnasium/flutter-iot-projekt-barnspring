@@ -1,0 +1,23 @@
+[
+    {
+        "title" : "Take 15 000 steps",
+        "type" : "steps",
+        "progress" : 6478,
+        "goal" : 15000,
+        "points" : 4
+    },
+    {
+        "title" : "Run faster than 25 km/h (7 m/s)",
+        "type" : "speed",
+        "progress" : 24,
+        "goal" : 25,
+        "points" : 2
+    },
+    {
+        "title" : "Visit Bäckby Centrum",
+        "type" : "map",
+        "progress" : 0,
+        "goal" : 1,
+        "points" : 5
+    }
+]
