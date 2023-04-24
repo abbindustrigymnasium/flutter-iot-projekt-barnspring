@@ -9,7 +9,6 @@ import { SvgXml } from 'react-native-svg';
 import * as Progress from 'react-native-progress';
 import { addToDistance, auth, getDistance } from './utils/firebase';
 // Consult "https://github.com/oblador/react-native-progress" for more info on progress bars (line not circle)
-import { auth } from './utils/firebase';
 import { signInWithEmailAndPassword, signOut, createUserWithEmailAndPassword, onAuthStateChanged, sendEmailVerification, updateProfile } from 'firebase/auth';
 import { getUserExtraInfo, addUserExtraInfo } from './utils/firebase';
 
@@ -125,7 +124,7 @@ const App = () => {
       }
       getLocation()
     }
-  }, [])
+  }, [currentUser])
   // Display login (true) or signup (false)
   const [displayLogin, setDisplayLogin] = useState(false);
   
