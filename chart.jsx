@@ -2,6 +2,8 @@ import {LineChart} from "react-native-chart-kit";
 import React, {useState} from 'react';
 import { View, Text, Dimensions} from 'react-native';
 
+// Custom chart through "react-native-chart-kit". Consult "https://www.npmjs.com/package/react-native-chart-kit" for more info.
+
 const Chart = () => {
     const [selectedValue, setSelectedValue] = useState(null);
     const daysOfWeek = ["Monday", "Tuesday", "Wedsday", "Thursday", "Friday", "Saturday", "Sunday"]
