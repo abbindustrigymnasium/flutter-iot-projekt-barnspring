@@ -34,16 +34,23 @@ export const addToDistance = async (userId, distance, date) => {
   try {
     const statsDoc = doc(db, "stats", userId);
     const stats = await getDoc(statsDoc)
-    if (!stats.exists()) {
-      await setDoc(statsDoc, {
-        [`${date}.distance`]: distance
-      })
-    }
-    
-    else {
+    try {
+      const distanceBefore = stats.data()[`${date}`]["distance"]
       await updateDoc(statsDoc, {
-        [`${date}.distance`]: FieldValue.increment(distance)
+      [`${date}`]: {
+          "distance": distanceBefore+distance,
+        }
       })
+      return distanceBefore+distance
+    }
+    catch {
+      console.log("No distance.");
+      await setDoc(statsDoc, {
+        [`${date}`]: {
+          "distance": distance
+        }
+      })
+      return null
     }
   }
   catch (e) {

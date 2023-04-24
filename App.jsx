@@ -38,7 +38,7 @@ function epochToDate(epoch) {
   const day = date.getDate();
   const month = date.getMonth();
   const year = date.getFullYear();
-  return `${day}/${month}-${year}`;
+  return `${year}-${month}-${day}`;
 }
 
 const App = () => {
@@ -53,57 +53,79 @@ const App = () => {
   const [prevCoords, setPrevCoords] = useState();
 
   useEffect(() => {
-    const distance = async () => {
-      if (location) {
-        const date = epochToDate(location.timestamp);
-        await getDistance(currentUser.uid, date);
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        // User is signed in, see docs for a list of available properties
+        // https://firebase.google.com/docs/reference/js/firebase.User
+        setCurrentUser(user);
+        // ...
+      } else {
+        // User is signed out
+        // ...
       }
-    }
-    distance();
-  }, [distanceDiff])
+    });
+  }, [])
+
+  // useEffect(() => {
+  //   const distance = async () => {
+  //     if (location) {
+  //       const date = epochToDate(location.timestamp);
+  //       const dist = await getDistance(currentUser.uid, date);
+  //       setCurrentDistance(dist)
+  //     }
+  //   }
+  //   distance();
+  // }, [distanceDiff])
 
   useEffect(() => {
-    let pprevCoords;
-    let trackingCount = 0;
-    const getLocation = async () => {
-      let { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== 'granted') {
-        console.log("Please grant location permissions.");
-        return;
-      }
-
-      await Location.watchPositionAsync({
-        accuracy: Location.Accuracy.Highest,
-        distanceInterval: 0.1,
-      },
-        (loc) => {
+    if (currentUser) {
+      let pprevCoords;
+      let trackingCount = 0;
+      const getLocation = async () => {
+        let { status } = await Location.requestForegroundPermissionsAsync();
+        if (status !== 'granted') {
+          console.log("Please grant location permissions.");
+          return;
+        }
+        
+        await Location.watchPositionAsync({
+          accuracy: Location.Accuracy.BestForNavigation,
+          distanceInterval: 0.1,
+        },
+        async (loc) => {
           setLocation(loc);
           let coords = [loc?.coords.latitude, loc?.coords.longitude];
-          if (prevCoords) { 
+          if (pprevCoords) { 
             console.log(trackingCount)
             if (trackingCount % 10 === 0) { 
-              let dist = Math.round(haversine(prevCoords, coords));
-              addToDistance(currentUser.uid, dist, epochToDate(loc?.timestamp))
+              let dist = Math.round(haversine(pprevCoords, coords));
+              let date = epochToDate(loc?.timestamp)
+              const added = await addToDistance(currentUser.uid, dist, date)
+              if (added) {
+                console.log(added)
+                setCurrentDistance(added)
+              }
+              else {
+                const dist = await getDistance(currentUser.uid, date);
+                setCurrentDistance(dist)
+              }
               console.log("DISTANCE ADDED: ", dist, "meter");
-              setPrevCoords(coords)
             }
           }
-          if (trackingCount === 0) {
-            setPrevCoords(coords)
-            console.log("prevCoords first")
-          }
+          pprevCoords = coords;
           trackingCount++;
           console.log("Location:", "\n", loc);
         });
+      }
+      getLocation()
     }
-    getLocation()
-  }, [])
-  // Display login (true) or signup (false)
-  const [displayLogin, setDisplayLogin] = useState(false);
-  
-  const speedChallenges = allChallenges.filter((challenge) => challenge.type === 'speed');
-  const stepsChallenges = allChallenges.filter((challenge) => challenge.type === 'steps');
-  const mapChallenges = allChallenges.filter((challenge) => challenge.type === 'map');
+    }, [])
+    // Display login (true) or signup (false)
+    const [displayLogin, setDisplayLogin] = useState(false);
+    
+    const speedChallenges = allChallenges.filter((challenge) => challenge.type === 'speed');
+    const stepsChallenges = allChallenges.filter((challenge) => challenge.type === 'steps');
+    const mapChallenges = allChallenges.filter((challenge) => challenge.type === 'map');
   const topChallenges = allChallenges.sort((a, b) => {
     return b.progress / b.goal - a.progress / a.goal;
   }).slice(0, 3);
@@ -321,6 +343,7 @@ const App = () => {
           }}
           loop={false}
           onIndexChanged={(e) => setCurrentPageIndex(e)}
+          ref={swiperRef}
         >
           {/* Start of page 0 */}
           <View className="w-full mt-20 flex items-center">
@@ -331,17 +354,6 @@ const App = () => {
               <Text className="text-white text-3xl font-[PM] font-semibold">
                 Dashboard
               </Text>
-              {
-              (location)?
-              <View>
-                <Text className="text-white"></Text>
-                <Text className="text-white">Longitude: {location?.coords.longitude}</Text>
-                <Text className="text-white">Latitude: {location?.coords.latitude}</Text>
-                <Text className="text-white">Timestamp: {epochToTimeString(location?.timestamp)}</Text>
-                <Text className="text-white">Distance ran: {currentDistance}</Text>
-                </View>
-              :""
-            }
             <View className="w-full flex justify-center items-center">
               <View className="bg-[#10102C] mt-6 flex justify-center items-center w-full h-[300px] rounded-3xl border-[#20204C] border">
                 <View className=" w-full h-5/6 flex items-center justify-between">
@@ -360,13 +372,11 @@ const App = () => {
                     </Text>
                     </View>
                     <View className=" -rotate-90" style={[shadowStyle, borderStyle]}>
-                      <ProgressCircle progress={todaysGoal} size={150} strokeWidth={10} color="#0085FF" />
+                      <ProgressCircle progress={((currentDistance/1000)/3.2)*150} size={150} strokeWidth={10} color="#0085FF" />
                     </View>
                   </View>
                   <Text className="text-white text-xl font-[PM]">
-                    ...
                   </Text>
-                    <Button title="Increase" onPress={handlePress} />
                 </View>
               </View>
             </View>
@@ -468,7 +478,7 @@ const App = () => {
               <View className="bg-[#10102C] mt-6 py-3 flex flex-row justify-around items-center w-full rounded-3xl border-[#20204C] border">
                 <View className="flex items-center">
                   <Text className="text-white text-lg font-[PM]">
-                    12.6 km
+                    {currentDistance/1000} km
                   </Text>
                   <Text className="text-white opacity-50 text-xs font-[PM]">
                     Running
@@ -476,7 +486,7 @@ const App = () => {
                 </View>
                 <View className="flex items-center">
                   <Text className="text-white text-lg font-[PM]">
-                    4h 25 min
+                    {Math.round(currentDistance/1000)}h {Math.round(((currentDistance/1000)%1)*10)/10*60}min
                   </Text>
                   <Text className="text-white opacity-50 text-xs font-[PM]">
                     Screentime
@@ -484,13 +494,26 @@ const App = () => {
                 </View>
                 <View className="flex items-center">
                   <Text className="text-white text-lg font-[PM]">
-                    21 007
+                    {Math.round(location?.coords.altitude)}m
                   </Text>
                   <Text className="text-white opacity-50 text-xs font-[PM]">
-                    Steps
+                    Altitude
                   </Text>
                 </View>
-              </View>
+                </View>
+                {
+              (location)?
+                <View className="bg-[#10102C] mt-6 py-3 flex flex-col items-center w-full rounded-3xl border-[#20204C] border">
+                      <View className="flex flex-row p-1 justify-center w-full ">
+                        <Text className="text-[#0085FF] text-lg font-semibold">{location?.coords.latitude}</Text>
+                      </View>
+                      <View className="flex flex-row p-1 justify-center w-full ">
+                        <Text className="text-[#0085FF] text-lg font-semibold">{location?.coords.longitude}</Text>
+                      </View>
+                <Text className="text-white opacity-50 font-[PM]">{epochToTimeString(location?.timestamp)}</Text>
+                </View>
+              :""
+            }
             </View>
           </View>
           <View className="w-full mt-20 flex items-center">
