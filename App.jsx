@@ -4,15 +4,20 @@ import ProgressCircle from './progressCircle.jsx';
 // import Chart from './chart.jsx';
 import { useFonts } from 'expo-font';
 import Swiper from 'react-native-swiper'
+// Consult "https://github.com/leecade/react-native-swiper" for more info on swiper
 import { SvgXml } from 'react-native-svg';
 import * as Progress from 'react-native-progress';
 import { addToDistance, auth, getDistance } from './utils/firebase';
+// Consult "https://github.com/oblador/react-native-progress" for more info on progress bars (line not circle)
+import { auth } from './utils/firebase';
 import { signInWithEmailAndPassword, signOut, createUserWithEmailAndPassword, onAuthStateChanged, sendEmailVerification, updateProfile } from 'firebase/auth';
 import { getUserExtraInfo, addUserExtraInfo } from './utils/firebase';
 
 import allChallenges from './test_challenges.json';
+// Host challenges on db in future
 
 
+// SVG imports
 import DashboardSvg from './assets/svg/Dashboard.svg';
 import StatsSvg from './assets/svg/Stats.svg';
 import MapSvg from './assets/svg/Map.svg';
@@ -24,6 +29,7 @@ import SpeedSvg from './assets/svg/Speed.svg';
 
 import * as Location from 'expo-location';
 import haversine from 'haversine-distance';
+// Consult "https://docs.expo.dev/versions/latest/sdk/location/" for info on location tracking
 
 function epochToTimeString(epoch) {
   const date = new Date(epoch);
@@ -101,9 +107,14 @@ const App = () => {
   // Display login (true) or signup (false)
   const [displayLogin, setDisplayLogin] = useState(false);
   
+
+  // Sorts challenges to its types
   const speedChallenges = allChallenges.filter((challenge) => challenge.type === 'speed');
   const stepsChallenges = allChallenges.filter((challenge) => challenge.type === 'steps');
   const mapChallenges = allChallenges.filter((challenge) => challenge.type === 'map');
+
+
+  // The challenges that are the closest to completio
   const topChallenges = allChallenges.sort((a, b) => {
     return b.progress / b.goal - a.progress / a.goal;
   }).slice(0, 3);
@@ -117,6 +128,7 @@ const App = () => {
   //     .catch((error) => console.error(error));
   // }, []);
 
+  // Custom style for "glow-effect" on the progress circle
   const shadowStyle = {
     shadowColor: '#0085FF',
     shadowRadius: 20,
@@ -127,14 +139,18 @@ const App = () => {
     overflow: 'hidden',
   };
 
+  // Loads custom font "Poppins"
   let [fontsLoaded] = useFonts({
     'PM': require('./assets/fonts/Poppins-Medium.ttf'),
     'PR': require('./assets/fonts/Poppins-Regular.ttf'),
     'PSB': require('./assets/fonts/Poppins-SemiBold.ttf'),
     'PB': require('./assets/fonts/Poppins-Bold.ttf'),
   });
+
+  // Variable that controlls todays goal bar
   const [todaysGoal, setTodaysGoal] = useState(0); // Progress bar 0-size sen repeatar den alltså size+1 = 1
 
+  // Test button to test the progress bar (not needed in final product)
   const handlePress = () => {
     setTodaysGoal(todaysGoal + 10);
   };
@@ -299,6 +315,7 @@ const App = () => {
       }
   
   if (!fontsLoaded) {
+    // Here you can return a loadingscreen if fonts are not loaded in
     return;
   }
   if(currentUser)
@@ -322,7 +339,7 @@ const App = () => {
           loop={false}
           onIndexChanged={(e) => setCurrentPageIndex(e)}
         >
-          {/* Start of page 0 */}
+          {/* Start of Dashboard */}
           <View className="w-full mt-20 flex items-center">
             <View className="w-11/12">
               <Text className="text-white uppercase font-bold opacity-50">
@@ -384,7 +401,7 @@ const App = () => {
               </View>
             ))}
           </View>
-          {/* End of page 0 */}
+          {/* Start of Challenges */}
           </View>
           <View className="w-full mt-20 flex items-center">
             <View className="w-11/12">
@@ -459,6 +476,7 @@ const App = () => {
             ))}
             </View>
           </View>
+          {/* Start of Stats */}
           <View className="w-full mt-20 flex items-center">
             <View className="w-11/12">
               <Text className="text-white text-3xl mb-6 font-[PM] font-semibold">
@@ -493,6 +511,7 @@ const App = () => {
               </View>
             </View>
           </View>
+          {/* Start of Profile */}
           <View className="w-full mt-20 flex items-center">
             <View className="w-11/12">
               <Text className="text-white text-3xl mb-6 font-[PM] font-semibold">
@@ -507,6 +526,7 @@ const App = () => {
           </View>
         </Swiper>
         </ScrollView>
+        {/* Start of Navbar */}
         <View className="w-full h-20 flex flex-row justify-around bg-[#10102C]">
           <TouchableOpacity className="w-1/4 flex pt-4 items-center" onPress={() => swiperRef.current?.scrollTo(0)}>
             <SvgXml width={24} height={24} xml={DashboardSvg} className={`fill-[#0085FF] opacity-${currentPageIndex == 0 ? "100" : "50" }`} />

@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { View } from 'react-native';
 import Svg, { Circle } from 'react-native-svg';
 
+// Function that creates a dynamic custom progress bar 
+
 const ProgressCircle = ({ progress, size, strokeWidth, color }) => {
   const [circumference, setCircumference] = useState(0);
   const radius = (size - strokeWidth) / 2;
