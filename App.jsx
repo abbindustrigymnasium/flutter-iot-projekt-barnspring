@@ -80,7 +80,6 @@ const App = () => {
           setLocation(loc);
           let coords = [loc?.coords.latitude, loc?.coords.longitude];
           if (prevCoords) { 
-            trackingCount++;
             console.log(trackingCount)
             if (trackingCount % 10 === 0) { 
               let dist = Math.round(haversine(prevCoords, coords));
@@ -88,10 +87,12 @@ const App = () => {
               console.log("DISTANCE ADDED: ", dist, "meter");
               setPrevCoords(coords)
             }
-            if (trackingCount === 0) {
-              setPrevCoords(coords)
-            }
           }
+          if (trackingCount === 0) {
+            setPrevCoords(coords)
+            console.log("prevCoords first")
+          }
+          trackingCount++;
           console.log("Location:", "\n", loc);
         });
     }
